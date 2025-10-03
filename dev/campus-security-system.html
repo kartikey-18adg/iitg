@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Campus Security Monitoring System with AI-powered anomaly detection">
+    <title>Campus Security Monitoring System</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Three.js Canvas Background -->
+    <div id="canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <span class="logo-text">Campus Security</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#analytics">Analytics</a></li>
+                <li><a href="#alerts">Alerts</a></li>
+                <li><a href="#upload">Upload</a></li>
+                <li><a href="#face-upload">Face Recognition</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Hero Section -->
+        <section id="home" class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">Campus Security</span>
+                        <br>Monitoring System
+                    </h1>
+                    <p class="hero-subtitle">
+                        AI-Powered Entity Resolution, Activity Tracking & Anomaly Detection
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="scrollToSection('upload')">
+                            Get Started
+                        </button>
+                        <button class="btn btn-secondary" onclick="scrollToSection('dashboard')">
+                            View Demo
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="floating-card">
+                        <div class="card-icon">📊</div>
+                        <div class="card-text">Real-time Analytics</div>
+                    </div>
+                    <div class="floating-card" style="animation-delay: 0.2s;">
+                        <div class="card-icon">🔍</div>
+                        <div class="card-text">Entity Resolution</div>
+                    </div>
+                    <div class="floating-card" style="animation-delay: 0.4s;">
+                        <div class="card-icon">⚡</div>
+                        <div class="card-text">Instant Alerts</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <div class="container">
+                <h2 class="section-title">System Dashboard</h2>
+                <p class="section-subtitle">Real-time monitoring and statistics</p>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            📁
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalRecords">0</div>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                        <div class="stat-trend positive">↑ 12%</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                            👥
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="entitiesCount">0</div>
+                            <div class="stat-label">Entities Identified</div>
+                        </div>
+                        <div class="stat-trend positive">↑ 8%</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                            ⚠️
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="anomaliesCount">0</div>
+                            <div class="stat-label">Anomalies Detected</div>
+                        </div>
+                        <div class="stat-trend negative">↑ 3%</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                            🔔
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="alertsCount">0</div>
+                            <div class="stat-label">Active Alerts</div>
+                        </div>
+                        <div class="stat-trend negative">↑ 2%</div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="activity-feed">
+                    <h3 class="feed-title">Live Activity Feed</h3>
+                    <div class="feed-items" id="activityFeed">
+                        <!-- Activity items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Analytics & Insights</h2>
+                <p class="section-subtitle">Data-driven security intelligence</p>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3 class="chart-title">Activity Timeline</h3>
+                        <canvas id="activityChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3 class="chart-title">Anomaly Distribution</h3>
+                        <canvas id="anomalyChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3 class="chart-title">Location Heatmap</h3>
+                        <canvas id="locationChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3 class="chart-title">Hourly Traffic</h3>
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alerts Section -->
+        <section id="alerts" class="section">
+            <div class="container">
+                <h2 class="section-title">Security Alerts</h2>
+                <p class="section-subtitle">Real-time threat monitoring</p>
+
+                <div class="alerts-container" id="alertsContainer">
+                    <!-- Alerts will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload" class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Data Upload & Processing</h2>
+                <p class="section-subtitle">Upload your campus data for analysis</p>
+
+                <div class="upload-container">
+                    <div class="upload-box" id="uploadBox">
+                        <div class="upload-icon">📤</div>
+                        <h3>Drop your Excel file here</h3>
+                        <p>or click to browse</p>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            Choose File
+                        </button>
+                    </div>
+
+                    <div class="upload-info">
+                        <h3>Supported Formats</h3>
+                        <ul>
+                            <li>✓ Excel files (.xlsx, .xls)</li>
+                            <li>✓ CSV files (.csv)</li>
+                            <li>✓ Maximum size: 16MB</li>
+                        </ul>
+                        <div class="file-status" id="fileStatus"></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-large btn-primary" onclick="processData()">
+                        🔍 Analyze Data
+                    </button>
+                    <button class="btn btn-large btn-secondary" onclick="useSampleData()">
+                        📊 Use Sample Data
+                    </button>
+                    <button class="btn btn-large btn-outline" onclick="exportResults()">
+                        💾 Export Results
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Table Section -->
+        <section class="section">
+            <div class="container">
+                <h2 class="section-title">Recent Activities</h2>
+                
+                <div class="table-controls">
+                    <input type="text" class="search-input" placeholder="Search activities..." id="searchInput">
+                    <select class="filter-select" id="filterSelect">
+                        <option value="all">All Activities</option>
+                        <option value="normal">Normal</option>
+                        <option value="anomaly">Anomalies Only</option>
+                    </select>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                                <th>Entity ID</th>
+                                <th>Location</th>
+                                <th>Activity</th>
+                                <th>Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be added by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h3>Campus Security System</h3>
+                        <p>AI-powered security monitoring for educational institutions</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Quick Links</h4>
+                        <ul>
+                            <li><a href="#home">Home</a></li>
+                            <li><a href="#dashboard">Dashboard</a></li>
+                            <li><a href="#analytics">Analytics</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="#">Documentation</a></li>
+                            <li><a href="#">API Reference</a></li>
+                            <li><a href="#">Support</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Contact</h4>
+                        <p>Email: security@campus.edu</p>
+                        <p>Phone: (555) 123-4567</p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 Campus Security System. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+        <p>Processing data...</p>
+    </div>
+    <!-- Facial Recognition Upload Section -->
+<section id="face-upload" class="section">
+    <div class="container">
+        <h2 class="section-title">Facial Recognition Processing</h2>
+        <p class="section-subtitle">Upload CCTV footage or images for face detection and identification</p>
+
+        <div class="upload-container">
+            <!-- Video/Image Upload -->
+            <div class="upload-box" id="videoUploadBox">
+                <div class="upload-icon">📹</div>
+                <h3>Upload CCTV Footage or Images</h3>
+                <p>Supported: MP4, AVI, MOV, JPG, PNG</p>
+                <input type="file" id="videoFileInput" accept="video/*,image/*" multiple hidden>
+                <button class="btn btn-primary" onclick="document.getElementById('videoFileInput').click()">
+                    Choose Files
+                </button>
+            </div>
+
+            <div class="upload-info">
+                <h3>Processing Options</h3>
+                <ul>
+                    <li>✓ Video files (.mp4, .avi, .mov)</li>
+                    <li>✓ Image files (.jpg, .png, .jpeg)</li>
+                    <li>✓ Batch processing supported</li>
+                    <li>✓ Face detection & identification</li>
+                </ul>
+                <div class="file-status" id="videoFileStatus"></div>
+            </div>
+        </div>
+
+        <!-- Face Database Management -->
+        <div class="face-database-section">
+            <h3>Face Database Management</h3>
+            <div class="database-controls">
+                <div class="control-group">
+                    <label>Person ID (Student ID):</label>
+                    <input type="text" id="personId" class="search-input" placeholder="e.g., STU00001">
+                </div>
+                <div class="control-group">
+                    <label>Upload Person Images:</label>
+                    <input type="file" id="personImagesInput" accept="image/*" multiple>
+                </div>
+                <button class="btn btn-primary" onclick="addPersonToDatabase()">
+                    Add to Database
+                </button>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-large btn-primary" onclick="processFacialRecognition()">
+                🔍 Process Facial Recognition
+            </button>
+            <button class="btn btn-large btn-secondary" onclick="detectDuplicates()">
+                👥 Detect Duplicates
+            </button>
+            <button class="btn btn-large btn-outline" onclick="exportFaceResults()">
+                💾 Export Face Recognition Results
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Face Recognition Results Section -->
+<section id="face-results" class="section section-dark">
+    <div class="container">
+        <h2 class="section-title">Face Recognition Results</h2>
+        
+        <div class="results-grid">
+            <div class="result-card">
+                <h3>Detected Faces</h3>
+                <div class="result-value" id="detectedFacesCount">0</div>
+            </div>
+            <div class="result-card">
+                <h3>Identified Persons</h3>
+                <div class="result-value" id="identifiedPersonsCount">0</div>
+            </div>
+            <div class="result-card">
+                <h3>Unknown Faces</h3>
+                <div class="result-value" id="unknownFacesCount">0</div>
+            </div>
+            <div class="result-card">
+                <h3>Confidence Average</h3>
+                <div class="result-value" id="avgConfidence">0%</div>
+            </div>
+        </div>
+
+        <!-- Face Gallery -->
+        <div class="face-gallery" id="faceGallery">
+            <!-- Face cards will be populated by JavaScript -->
+        </div>
+    </div>
+</section>
+
+
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
