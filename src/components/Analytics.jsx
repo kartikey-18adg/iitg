@@ -80,28 +80,23 @@ const Analytics = ({ data }) => {
     }
   }
 
-  // Process data for charts
   const processData = () => {
     if (!data || data.length === 0) return null
 
-    // Activity Timeline (24h)
     const hourly = Array(24).fill(0)
     data.forEach(d => {
       const hour = d.timestamp.getHours()
       hourly[hour]++
     })
 
-    // Anomaly Distribution
     const normal = data.filter(d => !d.isAnomaly).length
     const anomalies = data.filter(d => d.isAnomaly).length
 
-    // Location Distribution
     const locationCounts = {}
     data.forEach(d => {
       locationCounts[d.location] = (locationCounts[d.location] || 0) + 1
     })
 
-    // Weekly Traffic
     const dayData = Array(7).fill(0)
     data.forEach(d => {
       const day = d.timestamp.getDay()
@@ -166,9 +161,9 @@ const Analytics = ({ data }) => {
 
   if (!chartData) {
     return (
-      <section id="analytics" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl font-bold gradient-text mb-4">Analytics & Insights</h2>
+      <section id="analytics" className="px-4 py-20 sm:px-6 lg:px-8 bg-slate-800">
+        <div className="mx-auto text-center max-w-7xl">
+          <h2 className="mb-4 text-4xl font-bold gradient-text">Analytics & Insights</h2>
           <p className="text-xl text-slate-300">No data available for analysis</p>
         </div>
       </section>
@@ -176,16 +171,16 @@ const Analytics = ({ data }) => {
   }
 
   return (
-    <section id="analytics" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <section id="analytics" className="px-4 py-20 sm:px-6 lg:px-8 bg-slate-800">
+      <div className="mx-auto max-w-7xl">
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-16 text-center"
         >
-          <h2 className="text-4xl lg:text-5xl font-bold gradient-text mb-4">
+          <h2 className="mb-4 text-4xl font-bold lg:text-5xl gradient-text">
             Analytics & Insights
           </h2>
           <p className="text-xl text-slate-300">
@@ -193,22 +188,22 @@ const Analytics = ({ data }) => {
           </p>
         </motion.div>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Activity Timeline */}
+        {}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             whileHover={{ y: -5 }}
-            className="glass-card p-6"
+            className="p-6 glass-card"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold">Activity Timeline</h3>
               <div className="flex space-x-2">
-                <button className="px-3 py-1 bg-primary-500 text-white rounded-lg text-sm">24H</button>
-                <button className="px-3 py-1 bg-white/10 text-slate-300 rounded-lg text-sm hover:bg-white/20">7D</button>
-                <button className="px-3 py-1 bg-white/10 text-slate-300 rounded-lg text-sm hover:bg-white/20">30D</button>
+                <button className="px-3 py-1 text-sm text-white rounded-lg bg-primary-500">24H</button>
+                <button className="px-3 py-1 text-sm rounded-lg bg-white/10 text-slate-300 hover:bg-white/20">7D</button>
+                <button className="px-3 py-1 text-sm rounded-lg bg-white/10 text-slate-300 hover:bg-white/20">30D</button>
               </div>
             </div>
             <div className="h-64">
@@ -216,16 +211,16 @@ const Analytics = ({ data }) => {
             </div>
           </motion.div>
 
-          {/* Anomaly Distribution */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             whileHover={{ y: -5 }}
-            className="glass-card p-6"
+            className="p-6 glass-card"
           >
-            <h3 className="text-xl font-bold mb-6">Anomaly Distribution</h3>
-            <div className="h-64 flex items-center justify-center">
+            <h3 className="mb-6 text-xl font-bold">Anomaly Distribution</h3>
+            <div className="flex items-center justify-center h-64">
               <Doughnut 
                 data={chartData.anomalyDistribution} 
                 options={{
@@ -246,15 +241,15 @@ const Analytics = ({ data }) => {
             </div>
           </motion.div>
 
-          {/* Location Heatmap */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             whileHover={{ y: -5 }}
-            className="glass-card p-6"
+            className="p-6 glass-card"
           >
-            <h3 className="text-xl font-bold mb-6">Location Heatmap</h3>
+            <h3 className="mb-6 text-xl font-bold">Location Heatmap</h3>
             <div className="h-64">
               <Bar 
                 data={chartData.locationDistribution} 
@@ -281,15 +276,15 @@ const Analytics = ({ data }) => {
             </div>
           </motion.div>
 
-          {/* Hourly Traffic */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             whileHover={{ y: -5 }}
-            className="glass-card p-6"
+            className="p-6 glass-card"
           >
-            <h3 className="text-xl font-bold mb-6">Weekly Traffic</h3>
+            <h3 className="mb-6 text-xl font-bold">Weekly Traffic</h3>
             <div className="h-64">
               <Radar 
                 data={chartData.weeklyTraffic} 

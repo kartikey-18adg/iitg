@@ -9,14 +9,14 @@ const DataTable = ({ data }) => {
   const filteredData = useMemo(() => {
     let filtered = data
 
-    // Apply filter
+    
     if (filterType === 'normal') {
       filtered = filtered.filter(d => !d.isAnomaly)
     } else if (filterType === 'anomaly') {
       filtered = filtered.filter(d => d.isAnomaly)
     }
 
-    // Apply search
+    
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(d => 
@@ -69,7 +69,7 @@ Status: ${record.isAnomaly ? 'ANOMALY' : 'NORMAL'}
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ Status: ${record.isAnomaly ? 'ANOMALY' : 'NORMAL'}
           </h2>
         </motion.div>
 
-        {/* Controls */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -110,7 +110,7 @@ Status: ${record.isAnomaly ? 'ANOMALY' : 'NORMAL'}
           </select>
         </motion.div>
 
-        {/* Table */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

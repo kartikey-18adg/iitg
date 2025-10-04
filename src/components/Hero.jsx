@@ -34,14 +34,12 @@ const Hero = ({ onScrollToSection }) => {
     <section className="flex items-center justify-center min-h-screen px-4 pt-16 sm:px-6 lg:px-8">
       <div className="w-full mx-auto max-w-7xl">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -52,7 +50,6 @@ const Hero = ({ onScrollToSection }) => {
               <span className="text-sm font-medium">AI-Powered Security</span>
             </motion.div>
 
-            {/* Title */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -69,7 +66,6 @@ const Hero = ({ onScrollToSection }) => {
               </p>
             </motion.div>
 
-            {/* Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -97,7 +93,6 @@ const Hero = ({ onScrollToSection }) => {
               </motion.button>
             </motion.div>
 
-            {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -119,7 +114,6 @@ const Hero = ({ onScrollToSection }) => {
             </motion.div>
           </motion.div>
 
-          {/* Floating Cards */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -165,7 +159,6 @@ const Hero = ({ onScrollToSection }) => {
                     <h3 className="mb-2 text-xl font-bold">{card.title}</h3>
                     <p className="text-slate-400">{card.description}</p>
                     
-                    {/* Glow effect */}
                     <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-gradient-to-r from-primary-500/20 to-accent-500/20 rounded-2xl group-hover:opacity-100"></div>
                   </div>
                 </motion.div>
@@ -174,7 +167,6 @@ const Hero = ({ onScrollToSection }) => {
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

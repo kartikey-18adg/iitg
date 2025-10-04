@@ -19,7 +19,6 @@ const CCTV = () => {
       setUploadedFile(file)
       setIsProcessing(true)
       
-      // Simulate processing
       setTimeout(() => {
         setIsProcessing(false)
       }, 3000)
@@ -33,7 +32,6 @@ const CCTV = () => {
       setUploadedFile(file)
       setIsProcessing(true)
       
-      // Simulate processing
       setTimeout(() => {
         setIsProcessing(false)
       }, 3000)
@@ -47,7 +45,6 @@ const CCTV = () => {
   return (
     <section id="cctv" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,7 +60,7 @@ const CCTV = () => {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Upload Area */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -104,7 +101,7 @@ const CCTV = () => {
               </motion.label>
             </div>
 
-            {/* Upload Status */}
+            {}
             {uploadedFile && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -137,7 +134,7 @@ const CCTV = () => {
             )}
           </motion.div>
 
-          {/* Features */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -183,7 +180,7 @@ const CCTV = () => {
               </div>
             </div>
 
-            {/* Processing Status */}
+            {}
             {isProcessing && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}

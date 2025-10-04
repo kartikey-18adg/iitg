@@ -17,14 +17,14 @@ const LoadingOverlay = ({ isLoading }) => {
             exit={{ scale: 0.8, opacity: 0 }}
             className="text-center space-y-6"
           >
-            {/* Loading Spinner */}
+            {}
             <div className="relative">
               <div className="w-20 h-20 border-4 border-slate-600 border-t-primary-500 rounded-full animate-spin"></div>
               <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-accent-500 rounded-full animate-spin" style={{ animationDelay: '0.5s' }}></div>
               <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDelay: '1s' }}></div>
             </div>
             
-            {/* Loading Text */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -35,7 +35,7 @@ const LoadingOverlay = ({ isLoading }) => {
               <p className="text-slate-400">Please wait while we analyze your information</p>
             </motion.div>
             
-            {/* Progress Dots */}
+            {}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

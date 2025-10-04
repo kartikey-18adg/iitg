@@ -42,7 +42,6 @@ const Navigation = ({ currentSection, onSectionChange, onScrollToSection }) => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="flex items-center space-x-3 cursor-pointer"
@@ -60,7 +59,6 @@ const Navigation = ({ currentSection, onSectionChange, onScrollToSection }) => {
             </div>
           </motion.div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <motion.button
@@ -79,7 +77,6 @@ const Navigation = ({ currentSection, onSectionChange, onScrollToSection }) => {
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -89,7 +86,6 @@ const Navigation = ({ currentSection, onSectionChange, onScrollToSection }) => {
           </motion.button>
         </div>
 
-        {/* Mobile Navigation */}
         <motion.div
           initial={false}
           animate={{

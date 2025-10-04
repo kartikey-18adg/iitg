@@ -13,13 +13,13 @@ const ParticleBackground = () => {
     let mouseX = 0
     let mouseY = 0
 
-    // Set canvas size
+    
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
     }
 
-    // Initialize particles
+    
     const initParticles = () => {
       particlesRef.current = []
       const particleCount = Math.floor((canvas.width * canvas.height) / 10000)
@@ -36,13 +36,13 @@ const ParticleBackground = () => {
       }
     }
 
-    // Update particles
+    
     const updateParticles = () => {
       particlesRef.current.forEach(particle => {
         particle.x += particle.vx
         particle.y += particle.vy
 
-        // Mouse interaction
+        
         const dx = mouseX - particle.x
         const dy = mouseY - particle.y
         const distance = Math.sqrt(dx * dx + dy * dy)
@@ -53,17 +53,17 @@ const ParticleBackground = () => {
           particle.y -= dy * force * 0.01
         }
 
-        // Boundary check
+        
         if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1
         if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1
 
-        // Keep particles in bounds
+        
         particle.x = Math.max(0, Math.min(canvas.width, particle.x))
         particle.y = Math.max(0, Math.min(canvas.height, particle.y))
       })
     }
 
-    // Draw particles
+    
     const drawParticles = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
@@ -74,7 +74,7 @@ const ParticleBackground = () => {
         ctx.fill()
       })
 
-      // Draw connections
+      
       particlesRef.current.forEach((particle, i) => {
         particlesRef.current.slice(i + 1).forEach(otherParticle => {
           const dx = particle.x - otherParticle.x
@@ -93,32 +93,32 @@ const ParticleBackground = () => {
       })
     }
 
-    // Animation loop
+    
     const animate = () => {
       updateParticles()
       drawParticles()
       animationRef.current = requestAnimationFrame(animate)
     }
 
-    // Mouse move handler
+    
     const handleMouseMove = (e) => {
       mouseX = e.clientX
       mouseY = e.clientY
     }
 
-    // Initialize
+    
     resizeCanvas()
     initParticles()
     animate()
 
-    // Event listeners
+    
     window.addEventListener('resize', () => {
       resizeCanvas()
       initParticles()
     })
     window.addEventListener('mousemove', handleMouseMove)
 
-    // Cleanup
+    
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)

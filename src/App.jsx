@@ -17,7 +17,6 @@ function App() {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    // Generate sample data on mount
     generateSampleData()
   }, [])
 
@@ -51,7 +50,6 @@ function App() {
 
   const handleDataProcess = async () => {
     setIsLoading(true)
-    // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 2000))
     generateSampleData()
     setIsLoading(false)

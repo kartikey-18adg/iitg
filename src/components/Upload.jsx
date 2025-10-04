@@ -55,7 +55,7 @@ const Upload = ({ onDataProcess }) => {
   return (
     <section id="upload" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,7 +71,7 @@ const Upload = ({ onDataProcess }) => {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
-          {/* Upload Area */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -112,7 +112,7 @@ const Upload = ({ onDataProcess }) => {
               </motion.label>
             </div>
 
-            {/* File Info */}
+            {}
             {uploadedFile && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -141,7 +141,7 @@ const Upload = ({ onDataProcess }) => {
             )}
           </motion.div>
 
-          {/* Supported Formats */}
+          {}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -180,7 +180,7 @@ const Upload = ({ onDataProcess }) => {
           </motion.div>
         </div>
 
-        {/* Action Buttons */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
