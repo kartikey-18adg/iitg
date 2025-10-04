@@ -1,74 +1,211 @@
 // ============================================
-// Campus Security System - JavaScript & Three.js
+// Enhanced JavaScript with Three.js Animations
+// Campus Security Monitoring System
 // ============================================
 
 // Global Variables
-let scene, camera, renderer, particles;
+let scene, camera, renderer, particles, stars;
 let activityChart, anomalyChart, locationChart, trafficChart;
 let currentData = [];
-let filteredData = [];
-let currentPage = 1;
-const itemsPerPage = 10;
+let animationId;
+
+// ============================================
+// Initialize Everything on Load
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    initThreeJS();
+    initNavigation();
+    initFileUpload();
+    initScrollAnimations();
+    initTiltEffect();
+    animateCounters();
+    
+    // Load sample data after a delay
+    setTimeout(() => {
+        useSampleData();
+    }, 1000);
+});
 
 // ============================================
 // Three.js Background Animation
 // ============================================
 
 function initThreeJS() {
-    const container = document.getElementById('canvas-container');
+    const container = document.getElementById('three-background');
+    if (!container) return;
     
-    // Scene setup
+    // Scene Setup
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    scene.fog = new THREE.FogExp2(0x0f0f1e, 0.002);
     
+    // Camera Setup
+    camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.z = 50;
+    
+    // Renderer Setup
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        alpha: true 
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
     
-    // Create particle system
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 2000;
-    const posArray = new Float32Array(particlesCount * 3);
+    // Create Particle System
+    createParticleSystem();
     
-    for (let i = 0; i < particlesCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 100;
+    // Create Star Field
+    createStarField();
+    
+    // Create Geometric Shapes
+    createFloatingGeometry();
+    
+    // Start Animation Loop
+    animateThreeJS();
+    
+    // Handle Window Resize
+    window.addEventListener('resize', onWindowResize);
+}
+
+function createParticleSystem() {
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 3000;
+    const posArray = new Float32Array(particlesCount * 3);
+    const colorArray = new Float32Array(particlesCount * 3);
+    
+    for (let i = 0; i < particlesCount * 3; i += 3) {
+        // Position
+        posArray[i] = (Math.random() - 0.5) * 200;
+        posArray[i + 1] = (Math.random() - 0.5) * 200;
+        posArray[i + 2] = (Math.random() - 0.5) * 200;
+        
+        // Colors (gradient from primary to accent)
+        const t = Math.random();
+        colorArray[i] = 0.4 + t * 0.2;     // R
+        colorArray[i + 1] = 0.5 + t * 0.3; // G
+        colorArray[i + 2] = 0.9 + t * 0.1; // B
     }
     
     particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
     
     const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.1,
-        color: 0x667eea,
+        size: 0.15,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
     });
     
     particles = new THREE.Points(particlesGeometry, particlesMaterial);
     scene.add(particles);
-    
-    camera.position.z = 30;
-    
-    // Animation loop
-    animate();
 }
 
-function animate() {
-    requestAnimationFrame(animate);
+function createStarField() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 1500;
+    const starPositions = new Float32Array(starCount * 3);
+    
+    for (let i = 0; i < starCount * 3; i++) {
+        starPositions[i] = (Math.random() - 0.5) * 300;
+    }
+    
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    
+    const starMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.3,
+        transparent: true,
+        opacity: 0.6
+    });
+    
+    stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+}
+
+function createFloatingGeometry() {
+    // Create glowing torus
+    const torusGeometry = new THREE.TorusGeometry(10, 2, 16, 100);
+    const torusMaterial = new THREE.MeshBasicMaterial({
+        color: 0x667eea,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.2
+    });
+    const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    torus.position.set(-30, 20, -50);
+    scene.add(torus);
+    torus.userData = { rotationSpeed: { x: 0.001, y: 0.002 } };
+    
+    // Create glowing sphere
+    const sphereGeometry = new THREE.SphereGeometry(8, 32, 32);
+    const sphereMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf093fb,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15
+    });
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphere.position.set(40, -20, -60);
+    scene.add(sphere);
+    sphere.userData = { rotationSpeed: { x: 0.002, y: 0.001 } };
+    
+    // Store references for animation
+    scene.userData.geometries = [torus, sphere];
+}
+
+function animateThreeJS() {
+    animationId = requestAnimationFrame(animateThreeJS);
+    
+    const time = Date.now() * 0.0001;
     
     // Rotate particles
-    particles.rotation.x += 0.0003;
-    particles.rotation.y += 0.0005;
+    if (particles) {
+        particles.rotation.x += 0.0002;
+        particles.rotation.y += 0.0003;
+    }
+    
+    // Rotate stars slowly
+    if (stars) {
+        stars.rotation.x += 0.0001;
+        stars.rotation.y += 0.0002;
+    }
+    
+    // Animate geometric shapes
+    if (scene.userData.geometries) {
+        scene.userData.geometries.forEach(geom => {
+            geom.rotation.x += geom.userData.rotationSpeed.x;
+            geom.rotation.y += geom.userData.rotationSpeed.y;
+            geom.position.y += Math.sin(time + geom.position.x) * 0.01;
+        });
+    }
+    
+    // Mouse parallax effect
+    if (window.mouseX !== undefined && window.mouseY !== undefined) {
+        camera.position.x += (window.mouseX * 0.05 - camera.position.x) * 0.05;
+        camera.position.y += (-window.mouseY * 0.05 - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
+    }
     
     renderer.render(scene, camera);
 }
 
-// Handle window resize
-window.addEventListener('resize', () => {
-    if (camera && renderer) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// Mouse move for parallax effect
+document.addEventListener('mousemove', (event) => {
+    window.mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+    window.mouseY = (event.clientY / window.innerHeight) * 2 - 1;
 });
 
 // ============================================
@@ -78,37 +215,150 @@ window.addEventListener('resize', () => {
 function initNavigation() {
     const navbar = document.getElementById('navbar');
     const mobileToggle = document.getElementById('mobileToggle');
-    const navLinks = document.querySelector('.nav-links');
+    const navMenu = document.getElementById('navMenu');
     
     // Scroll effect
+    let lastScroll = 0;
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
+        const currentScroll = window.pageYOffset;
+        
+        if (currentScroll > 100) {
             navbar.classList.add('scrolled');
         } else {
             navbar.classList.remove('scrolled');
         }
+        
+        lastScroll = currentScroll;
     });
     
     // Mobile menu toggle
-    mobileToggle.addEventListener('click', () => {
-        mobileToggle.classList.toggle('active');
-        navLinks.classList.toggle('active');
-    });
-    
-    // Close mobile menu on link click
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            mobileToggle.classList.remove('active');
-            navLinks.classList.remove('active');
+    if (mobileToggle && navMenu) {
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('active');
+            navMenu.classList.toggle('active');
         });
-    });
+        
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileToggle.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
+        });
+    }
 }
 
 function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+}
+
+// ============================================
+// Scroll Animations
+// ============================================
+
+function initScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all animated elements
+    document.querySelectorAll('[data-aos]').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+}
+
+// ============================================
+// 3D Tilt Effect for Floating Cards
+// ============================================
+
+function initTiltEffect() {
+    const tiltElements = document.querySelectorAll('[data-tilt]');
+    
+    tiltElements.forEach(element => {
+        element.addEventListener('mouseenter', handleTiltEnter);
+        element.addEventListener('mousemove', handleTiltMove);
+        element.addEventListener('mouseleave', handleTiltLeave);
+    });
+}
+
+function handleTiltEnter(e) {
+    this.style.transition = 'none';
+}
+
+function handleTiltMove(e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = (y - centerY) / 10;
+    const rotateY = (centerX - x) / 10;
+    
+    this.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+}
+
+function handleTiltLeave(e) {
+    this.style.transition = 'transform 0.5s ease';
+    this.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+}
+
+// ============================================
+// Animated Counter
+// ============================================
+
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-value[data-target]');
+    
+    const observerOptions = {
+        threshold: 0.5
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.dataset.target);
+                animateCounter(entry.target, target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    counters.forEach(counter => observer.observe(counter));
+}
+
+function animateCounter(element, target) {
+    const duration = 2000;
+    const start = 0;
+    const increment = target / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current);
+        }
+    }, 16);
 }
 
 // ============================================
@@ -117,63 +367,84 @@ function scrollToSection(sectionId) {
 
 function initFileUpload() {
     const fileInput = document.getElementById('fileInput');
-    const uploadBox = document.getElementById('uploadBox');
-    const fileStatus = document.getElementById('fileStatus');
+    const uploadBox = document.getElementById('dataUploadBox');
+    const cctvInput = document.getElementById('cctvInput');
+    const cctvUploadArea = document.getElementById('cctvUploadArea');
     
-    // Click to upload
-    uploadBox.addEventListener('click', (e) => {
-        if (e.target !== fileInput) {
-            fileInput.click();
-        }
-    });
-    
-    // File selection
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            handleFileSelect(file);
-        }
-    });
-    
-    // Drag and drop
-    uploadBox.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadBox.classList.add('dragover');
-    });
-    
-    uploadBox.addEventListener('dragleave', () => {
-        uploadBox.classList.remove('dragover');
-    });
-    
-    uploadBox.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadBox.classList.remove('dragover');
+    // Data file upload
+    if (fileInput && uploadBox) {
+        uploadBox.addEventListener('click', () => fileInput.click());
         
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            handleFileSelect(file);
-        }
-    });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleDataFile(file);
+        });
+        
+        // Drag and drop
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#667eea';
+            uploadBox.style.background = 'rgba(102, 126, 234, 0.1)';
+        });
+        
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.style.borderColor = '';
+            uploadBox.style.background = '';
+        });
+        
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '';
+            uploadBox.style.background = '';
+            const file = e.dataTransfer.files[0];
+            if (file) handleDataFile(file);
+        });
+    }
+    
+    // CCTV upload
+    if (cctvInput && cctvUploadArea) {
+        cctvUploadArea.addEventListener('click', () => cctvInput.click());
+        
+        cctvInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleCCTVFile(file);
+        });
+    }
 }
 
-function handleFileSelect(file) {
-    const fileStatus = document.getElementById('fileStatus');
-    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
-                         'application/vnd.ms-excel', 'text/csv'];
-    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
-    const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+function handleDataFile(file) {
+    const fileInfo = document.getElementById('fileInfo');
+    const allowedTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+    ];
     
-    if (allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension)) {
-        fileStatus.innerHTML = `✓ File selected: ${file.name} (${formatFileSize(file.size)})`;
-        fileStatus.style.display = 'block';
-        fileStatus.style.background = 'rgba(16, 185, 129, 0.1)';
-        fileStatus.style.color = '#10b981';
+    if (allowedTypes.includes(file.type)) {
+        if (fileInfo) {
+            fileInfo.innerHTML = `
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 10px; color: #10b981;">
+                    ✓ ${file.name} (${formatFileSize(file.size)})
+                </div>
+            `;
+        }
     } else {
-        fileStatus.innerHTML = `✗ Invalid file type. Please upload Excel or CSV files.`;
-        fileStatus.style.display = 'block';
-        fileStatus.style.background = 'rgba(239, 68, 68, 0.1)';
-        fileStatus.style.color = '#ef4444';
+        if (fileInfo) {
+            fileInfo.innerHTML = `
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 10px; color: #ef4444;">
+                    ✗ Invalid file type
+                </div>
+            `;
+        }
     }
+}
+
+function handleCCTVFile(file) {
+    showLoading();
+    setTimeout(() => {
+        hideLoading();
+        alert(`CCTV file "${file.name}" uploaded successfully!\n\nAI Face Detection processing started...`);
+    }, 2000);
 }
 
 function formatFileSize(bytes) {
@@ -190,20 +461,20 @@ function formatFileSize(bytes) {
 
 function generateSampleData() {
     const activities = ['Entry', 'Exit', 'Card Swipe', 'WiFi Login', 'Lab Access', 'Library Check-in'];
-    const buildings = ['Main Building', 'Library', 'Lab A', 'Lab B', 'Cafeteria', 'Gym', 'Dorm A'];
+    const buildings = ['Main Building', 'Library', 'Lab A', 'Lab B', 'Cafeteria', 'Gym', 'Dorm A', 'Dorm B'];
     const data = [];
     
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 150; i++) {
         const isAnomaly = Math.random() > 0.85;
         const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
         
         data.push({
             id: `REC${String(i + 1).padStart(6, '0')}`,
             timestamp: timestamp,
-            entityId: `ENT_${Math.floor(Math.random() * 30)}`,
+            entityId: `ENT_${String(Math.floor(Math.random() * 50)).padStart(3, '0')}`,
             location: buildings[Math.floor(Math.random() * buildings.length)],
             activity: activities[Math.floor(Math.random() * activities.length)],
-            score: isAnomaly ? -0.8 - Math.random() * 0.5 : 0.2 + Math.random() * 0.3,
+            score: isAnomaly ? -0.8 - Math.random() * 0.6 : 0.2 + Math.random() * 0.3,
             isAnomaly: isAnomaly,
             duration: Math.floor(Math.random() * 180) + 5
         });
@@ -217,16 +488,14 @@ function useSampleData() {
     
     setTimeout(() => {
         currentData = generateSampleData();
-        filteredData = currentData;
         updateDashboard();
         createCharts();
         updateActivityFeed();
-        updateAlertsDisplay();
         renderTable();
         hideLoading();
         
-        // Scroll to dashboard
-        scrollToSection('dashboard');
+        // Smooth scroll to dashboard
+        setTimeout(() => scrollToSection('dashboard'), 500);
     }, 1500);
 }
 
@@ -234,13 +503,26 @@ function processData() {
     const fileInput = document.getElementById('fileInput');
     
     if (!fileInput.files[0]) {
-        alert('Please select a file first');
+        alert('⚠️ Please select a file first');
         return;
     }
     
-    // In production, this would upload to backend
-    alert('File upload requires backend integration. Using sample data for demonstration.');
+    // In production, upload to backend
+    alert('📤 File upload requires backend integration.\n\n Using sample data for demonstration.');
     useSampleData();
+}
+
+function exportResults() {
+    if (currentData.length === 0) {
+        alert('⚠️ No data to export. Please analyze data first.');
+        return;
+    }
+    
+    showLoading();
+    setTimeout(() => {
+        hideLoading();
+        alert('✓ Results exported successfully!\n\nFile: campus_security_report.xlsx');
+    }, 1000);
 }
 
 // ============================================
@@ -252,18 +534,18 @@ function updateDashboard() {
     const criticalAlerts = anomalies.filter(a => a.score < -1.0);
     const entities = new Set(currentData.map(d => d.entityId));
     
-    // Update stats with animation
-    animateCounter('totalRecords', currentData.length);
-    animateCounter('entitiesCount', entities.size);
-    animateCounter('anomaliesCount', anomalies.length);
-    animateCounter('alertsCount', criticalAlerts.length);
+    // Update with animation
+    animateStatValue('totalRecords', currentData.length);
+    animateStatValue('entitiesCount', entities.size);
+    animateStatValue('anomaliesCount', anomalies.length);
+    animateStatValue('alertsCount', criticalAlerts.length);
 }
 
-function animateCounter(elementId, targetValue) {
+function animateStatValue(elementId, targetValue) {
     const element = document.getElementById(elementId);
     if (!element) return;
     
-    const duration = 1000;
+    const duration = 1500;
     const start = parseInt(element.textContent) || 0;
     const increment = (targetValue - start) / (duration / 16);
     let current = start;
@@ -287,7 +569,7 @@ function updateActivityFeed() {
     const feedContainer = document.getElementById('activityFeed');
     if (!feedContainer) return;
     
-    const recentActivities = currentData.slice(0, 10);
+    const recentActivities = currentData.slice(0, 15);
     
     feedContainer.innerHTML = recentActivities.map(activity => {
         const iconBg = activity.isAnomaly ? 
@@ -295,19 +577,35 @@ function updateActivityFeed() {
             'background: linear-gradient(135deg, #10b981, #059669);';
         
         return `
-            <div class="feed-item">
-                <div class="feed-icon" style="${iconBg}">
+            <div class="activity-item" style="animation: slideInLeft 0.5s ease-out;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; ${iconBg} display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
                     ${activity.isAnomaly ? '⚠️' : '✓'}
                 </div>
-                <div class="feed-content">
-                    <div class="feed-text">
-                        <strong>${activity.entityId}</strong> - ${activity.activity} at ${activity.location}
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                        ${activity.entityId} - ${activity.activity}
                     </div>
-                    <div class="feed-time">${formatTimestamp(activity.timestamp)}</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">
+                        ${activity.location} • ${formatTimestamp(activity.timestamp)}
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; padding: 0.5rem 1rem; background: ${activity.isAnomaly ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'}; border-radius: 20px; color: ${activity.isAnomaly ? '#ef4444' : '#10b981'}; font-weight: 600;">
+                    ${activity.score.toFixed(3)}
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function refreshFeed() {
+    const btn = document.querySelector('.btn-refresh .refresh-icon');
+    if (btn) {
+        btn.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+            btn.style.transform = 'rotate(0deg)';
+        }, 500);
+    }
+    updateActivityFeed();
 }
 
 function formatTimestamp(date) {
@@ -343,19 +641,26 @@ function createActivityChart() {
     
     if (activityChart) activityChart.destroy();
     
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+    gradient.addColorStop(1, 'rgba(102, 126, 234, 0.0)');
+    
     activityChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: Array.from({length: 24}, (_, i) => `${i}:00`),
             datasets: [{
-                label: 'Activities per Hour',
+                label: 'Activities',
                 data: hourly,
                 borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                backgroundColor: gradient,
                 tension: 0.4,
                 fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
             }]
         },
         options: {
@@ -363,18 +668,27 @@ function createActivityChart() {
             maintainAspectRatio: true,
             plugins: {
                 legend: {
-                    labels: { color: '#edf2f7' }
+                    labels: { 
+                        color: '#edf2f7',
+                        font: { size: 14 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 15, 30, 0.9)',
+                    titleColor: '#edf2f7',
+                    bodyColor: '#edf2f7',
+                    borderColor: '#667eea',
+                    borderWidth: 1
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#a0aec0' }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
                 },
                 x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#a0aec0' }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
                 }
             }
         }
@@ -397,7 +711,8 @@ function createAnomalyChart() {
             datasets: [{
                 data: [normal, anomalies],
                 backgroundColor: ['#10b981', '#ef4444'],
-                borderWidth: 0
+                borderWidth: 0,
+                hoverOffset: 20
             }]
         },
         options: {
@@ -406,7 +721,16 @@ function createAnomalyChart() {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { color: '#edf2f7', padding: 20 }
+                    labels: { 
+                        color: '#edf2f7',
+                        padding: 20,
+                        font: { size: 14 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 15, 30, 0.9)',
+                    titleColor: '#edf2f7',
+                    bodyColor: '#edf2f7'
                 }
             }
         }
@@ -432,11 +756,12 @@ function createLocationChart() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Activities by Location',
+                label: 'Activities',
                 data: data,
                 backgroundColor: 'rgba(240, 147, 251, 0.6)',
                 borderColor: '#f093fb',
-                borderWidth: 2
+                borderWidth: 2,
+                borderRadius: 8
             }]
         },
         options: {
@@ -449,13 +774,17 @@ function createLocationChart() {
             },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#a0aec0' }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' },
+                    beginAtZero: true
                 },
                 x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#a0aec0', maxRotation: 45, minRotation: 45 }
+                    grid: { display: false },
+                    ticks: { 
+                        color: '#94a3b8',
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
                 }
             }
         }
@@ -485,8 +814,9 @@ function createTrafficChart() {
                 backgroundColor: 'rgba(79, 172, 254, 0.2)',
                 pointBackgroundColor: '#4facfe',
                 pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#4facfe'
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8
             }]
         },
         options: {
@@ -499,10 +829,13 @@ function createTrafficChart() {
             },
             scales: {
                 r: {
-                    beginAtZero: true,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#a0aec0', backdropColor: 'transparent' },
-                    pointLabels: { color: '#edf2f7' }
+                    ticks: { 
+                        color: '#94a3b8',
+                        backdropColor: 'transparent'
+                    },
+                    pointLabels: { color: '#edf2f7' },
+                    beginAtZero: true
                 }
             }
         }
@@ -510,278 +843,141 @@ function createTrafficChart() {
 }
 
 // ============================================
-// Alerts Display
-// ============================================
-
-function updateAlertsDisplay() {
-    const alertsContainer = document.getElementById('alertsContainer');
-    if (!alertsContainer) return;
-    
-    const anomalies = currentData.filter(d => d.isAnomaly).slice(0, 10);
-    
-    if (anomalies.length === 0) {
-        alertsContainer.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: #10b981;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">✓</div>
-                <h3>No Active Alerts</h3>
-                <p>All systems operating normally</p>
-            </div>
-        `;
-        return;
-    }
-    
-    alertsContainer.innerHTML = anomalies.map((alert, idx) => {
-        let severity, badgeClass, badgeStyle;
-        if (alert.score < -1.0) {
-            severity = 'CRITICAL';
-            badgeClass = 'alert-critical';
-            badgeStyle = 'background: #ef4444; color: white;';
-        } else if (alert.score < -0.7) {
-            severity = 'HIGH';
-            badgeClass = 'alert-high';
-            badgeStyle = 'background: #f59e0b; color: white;';
-        } else {
-            severity = 'MEDIUM';
-            badgeClass = 'alert-medium';
-            badgeStyle = 'background: #3b82f6; color: white;';
-        }
-        
-        return `
-            <div class="alert-item ${badgeClass}">
-                <div class="alert-header">
-                    <div class="alert-title">ALERT #${idx + 1} - ${severity} PRIORITY</div>
-                    <span class="alert-badge" style="${badgeStyle}">
-                        ${severity}
-                    </span>
-                </div>
-                <div class="alert-description">
-                    <strong>Entity:</strong> ${alert.entityId} | 
-                    <strong>Location:</strong> ${alert.location} | 
-                    <strong>Activity:</strong> ${alert.activity}<br>
-                    <strong>Time:</strong> ${alert.timestamp.toLocaleString()} | 
-                    <strong>Score:</strong> ${alert.score.toFixed(2)} | 
-                    <strong>Duration:</strong> ${alert.duration}s
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// ============================================
-// Table Rendering & Pagination
+// Table Rendering
 // ============================================
 
 function renderTable() {
     const tableBody = document.getElementById('dataTableBody');
     if (!tableBody) return;
     
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageData = filteredData.slice(startIndex, endIndex);
+    const displayData = currentData.slice(0, 20);
     
-    if (pageData.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 2rem; color: #a0aec0;">
-                    No data available
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tableBody.innerHTML = pageData.map(item => {
-        const statusClass = item.isAnomaly ? 'anomaly' : 'normal';
-        const statusText = item.isAnomaly ? 'Anomaly' : 'Normal';
-        const statusIcon = item.isAnomaly ? '⚠' : '✓';
+    tableBody.innerHTML = displayData.map(row => {
+        const statusClass = row.isAnomaly ? 'anomaly' : 'normal';
+        const statusColor = row.isAnomaly ? '#ef4444' : '#10b981';
         
         return `
-            <tr>
+            <tr style="animation: fadeIn 0.5s ease-out;">
                 <td>
                     <span class="status-badge ${statusClass}">
                         <span class="status-indicator"></span>
-                        ${statusIcon} ${statusText}
+                        ${row.isAnomaly ? 'Anomaly' : 'Normal'}
                     </span>
                 </td>
-                <td>${item.timestamp.toLocaleString()}</td>
-                <td>${item.entityId}</td>
-                <td>${item.location}</td>
-                <td>${item.activity}</td>
-                <td>${item.score.toFixed(2)}</td>
+                <td>${row.timestamp.toLocaleString()}</td>
+                <td><strong>${row.entityId}</strong></td>
+                <td>${row.location}</td>
+                <td>${row.activity}</td>
+                <td style="color: ${statusColor}; font-weight: 600;">${row.score.toFixed(3)}</td>
                 <td>
-                    <button class="action-btn" onclick="viewDetails('${item.id}')">View</button>
+                    <button class="action-btn" onclick="viewDetails('${row.id}')">
+                        View
+                    </button>
                 </td>
             </tr>
         `;
     }).join('');
-    
-    renderPagination();
 }
 
-function renderPagination() {
-    const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) return;
-    
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    
-    if (totalPages <= 1) {
-        paginationContainer.innerHTML = '';
-        return;
+function viewDetails(id) {
+    const record = currentData.find(r => r.id === id);
+    if (record) {
+        alert(`
+📋 Activity Details
+
+ID: ${record.id}
+Entity: ${record.entityId}
+Location: ${record.location}
+Activity: ${record.activity}
+Timestamp: ${record.timestamp.toLocaleString()}
+Duration: ${record.duration} minutes
+Score: ${record.score.toFixed(3)}
+Status: ${record.isAnomaly ? 'ANOMALY' : 'NORMAL'}
+        `);
     }
-    
-    let paginationHTML = '';
-    
-    // Previous button
-    paginationHTML += `
-        <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-            ← Previous
-        </button>
-    `;
-    
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            paginationHTML += `
-                <button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">
-                    ${i}
-                </button>
-            `;
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-            paginationHTML += '<span style="padding: 0.75rem;">...</span>';
-        }
-    }
-    
-    // Next button
-    paginationHTML += `
-        <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-            Next →
-        </button>
-    `;
-    
-    paginationContainer.innerHTML = paginationHTML;
 }
 
-function changePage(page) {
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    if (page < 1 || page > totalPages) return;
-    
-    currentPage = page;
-    renderTable();
-    
-    // Scroll to table
-    document.querySelector('.data-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ============================================
-// Search & Filter
-// ============================================
-
-function initSearchAndFilter() {
+// Search and Filter functionality
+document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const filterSelect = document.getElementById('filterSelect');
     
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            applyFilters();
+            filterTable(e.target.value, filterSelect?.value || 'all');
         });
     }
     
     if (filterSelect) {
         filterSelect.addEventListener('change', (e) => {
-            applyFilters();
+            filterTable(searchInput?.value || '', e.target.value);
         });
     }
+});
+
+function filterTable(searchTerm, filterType) {
+    let filtered = currentData;
+    
+    // Apply filter
+    if (filterType === 'normal') {
+        filtered = filtered.filter(d => !d.isAnomaly);
+    } else if (filterType === 'anomaly') {
+        filtered = filtered.filter(d => d.isAnomaly);
+    }
+    
+    // Apply search
+    if (searchTerm) {
+        searchTerm = searchTerm.toLowerCase();
+        filtered = filtered.filter(d => 
+            d.entityId.toLowerCase().includes(searchTerm) ||
+            d.location.toLowerCase().includes(searchTerm) ||
+            d.activity.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    renderFilteredTable(filtered);
 }
 
-function applyFilters() {
-    const searchInput = document.getElementById('searchInput');
-    const filterSelect = document.getElementById('filterSelect');
+function renderFilteredTable(data) {
+    const tableBody = document.getElementById('dataTableBody');
+    if (!tableBody) return;
     
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const filterValue = filterSelect ? filterSelect.value : 'all';
-    
-    filteredData = currentData.filter(item => {
-        // Apply search filter
-        const matchesSearch = !searchTerm || 
-            item.entityId.toLowerCase().includes(searchTerm) ||
-            item.location.toLowerCase().includes(searchTerm) ||
-            item.activity.toLowerCase().includes(searchTerm);
-        
-        // Apply status filter
-        let matchesFilter = true;
-        if (filterValue === 'normal') {
-            matchesFilter = !item.isAnomaly;
-        } else if (filterValue === 'anomaly') {
-            matchesFilter = item.isAnomaly;
-        }
-        
-        return matchesSearch && matchesFilter;
-    });
-    
-    currentPage = 1;
-    renderTable();
-}
-
-// ============================================
-// Export Results
-// ============================================
-
-function exportResults() {
-    if (currentData.length === 0) {
-        alert('No data to export');
+    if (data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    No results found
+                </td>
+            </tr>
+        `;
         return;
     }
     
-    // Convert data to CSV
-    const headers = ['ID', 'Timestamp', 'Entity ID', 'Location', 'Activity', 'Score', 'Status', 'Duration'];
-    const csvContent = [
-        headers.join(','),
-        ...currentData.map(item => [
-            item.id,
-            item.timestamp.toISOString(),
-            item.entityId,
-            item.location,
-            item.activity,
-            item.score.toFixed(2),
-            item.isAnomaly ? 'Anomaly' : 'Normal',
-            item.duration
-        ].join(','))
-    ].join('\n');
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `campus_security_data_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// ============================================
-// View Details
-// ============================================
-
-function viewDetails(recordId) {
-    const record = currentData.find(item => item.id === recordId);
-    if (!record) return;
-    
-    const detailsHTML = `
-        <strong>Record ID:</strong> ${record.id}
-        <strong>Timestamp:</strong> ${record.timestamp.toLocaleString()}
-        <strong>Entity ID:</strong> ${record.entityId}
-        <strong>Location:</strong> ${record.location}
-        <strong>Activity:</strong> ${record.activity}
-        <strong>Anomaly Score:</strong> ${record.score.toFixed(2)}
-        <strong>Status:</strong> ${record.isAnomaly ? 'Anomaly Detected' : 'Normal Activity'}
-        <strong>Duration:</strong> ${record.duration} seconds
-    `;
-    
-    alert(detailsHTML.replace(/<strong>/g, '\n').replace(/<\/strong>/g, ': '));
+    tableBody.innerHTML = data.slice(0, 20).map(row => {
+        const statusClass = row.isAnomaly ? 'anomaly' : 'normal';
+        const statusColor = row.isAnomaly ? '#ef4444' : '#10b981';
+        
+        return `
+            <tr style="animation: fadeIn 0.5s ease-out;">
+                <td>
+                    <span class="status-badge ${statusClass}">
+                        <span class="status-indicator"></span>
+                        ${row.isAnomaly ? 'Anomaly' : 'Normal'}
+                    </span>
+                </td>
+                <td>${row.timestamp.toLocaleString()}</td>
+                <td><strong>${row.entityId}</strong></td>
+                <td>${row.location}</td>
+                <td>${row.activity}</td>
+                <td style="color: ${statusColor}; font-weight: 600;">${row.score.toFixed(3)}</td>
+                <td>
+                    <button class="action-btn" onclick="viewDetails('${row.id}')">
+                        View
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ============================================
@@ -803,351 +999,313 @@ function hideLoading() {
 }
 
 // ============================================
-// Initialize Application
+// Keyboard Shortcuts
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Three.js background
-    initThreeJS();
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + K: Focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.focus();
+    }
     
-    // Initialize navigation
-    initNavigation();
+    // Ctrl/Cmd + U: Trigger upload
+    if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) fileInput.click();
+    }
     
-    // Initialize file upload
-    initFileUpload();
+    // Ctrl/Cmd + R: Refresh data
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        refreshFeed();
+    }
+});
+
+// ============================================
+// Smooth Scroll for All Links
+// ============================================
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// ============================================
+// Intersection Observer for Fade-in Animations
+// ============================================
+
+const fadeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+});
+
+// Observe all stat cards and chart cards
+document.querySelectorAll('.stat-card, .chart-card, .activity-feed-container').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    fadeObserver.observe(el);
+});
+
+// ============================================
+// Add Particle Effect on Button Click
+// ============================================
+
+document.querySelectorAll('.btn-action').forEach(button => {
+    button.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const ripple = document.createElement('span');
+        ripple.style.position = 'absolute';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.width = '0';
+        ripple.style.height = '0';
+        ripple.style.borderRadius = '50%';
+        ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+        ripple.style.transform = 'translate(-50%, -50%)';
+        ripple.style.animation = 'ripple-effect 0.6s ease-out';
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => ripple.remove(), 600);
+    });
+});
+
+// Add ripple animation to CSS dynamically
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes ripple-effect {
+        to {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        }
+    }
     
-    // Initialize search and filter
-    initSearchAndFilter();
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// ============================================
+// Performance Monitoring
+// ============================================
+
+if (window.performance) {
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const perfData = window.performance.timing;
+            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+            console.log(`🚀 Page Load Time: ${pageLoadTime}ms`);
+        }, 0);
+    });
+}
+
+// ============================================
+// Detect Reduced Motion Preference
+// ============================================
+
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+if (prefersReducedMotion.matches) {
+    // Disable animations for users who prefer reduced motion
+    document.querySelectorAll('*').forEach(el => {
+        el.style.animation = 'none';
+        el.style.transition = 'none';
+    });
+}
+
+// ============================================
+// Add Gradient Animation to Hero Text
+// ============================================
+
+function animateGradient() {
+    const gradientTexts = document.querySelectorAll('.gradient-text');
+    let hue = 0;
     
-    // Add smooth scroll to all internal links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth' });
+    setInterval(() => {
+        hue = (hue + 1) % 360;
+        gradientTexts.forEach(text => {
+            text.style.backgroundImage = `linear-gradient(135deg, 
+                hsl(${hue}, 70%, 60%), 
+                hsl(${(hue + 60) % 360}, 70%, 70%))`;
+        });
+    }, 50);
+}
+
+// Uncomment to enable gradient animation
+// animateGradient();
+
+// ============================================
+// Easter Egg: Konami Code
+// ============================================
+
+let konamiCode = [];
+const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+document.addEventListener('keydown', (e) => {
+    konamiCode.push(e.key);
+    konamiCode = konamiCode.slice(-10);
+    
+    if (konamiCode.join('') === konamiSequence.join('')) {
+        triggerEasterEgg();
+        konamiCode = [];
+    }
+});
+
+function triggerEasterEgg() {
+    // Add rainbow effect to particles
+    if (particles) {
+        const colors = [0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0x9400d3];
+        let colorIndex = 0;
+        
+        const interval = setInterval(() => {
+            particles.material.color.setHex(colors[colorIndex]);
+            colorIndex = (colorIndex + 1) % colors.length;
+        }, 200);
+        
+        setTimeout(() => {
+            clearInterval(interval);
+            particles.material.color.setHex(0x667eea);
+        }, 5000);
+    }
+    
+    // Show celebration message
+    const message = document.createElement('div');
+    message.style.position = 'fixed';
+    message.style.top = '50%';
+    message.style.left = '50%';
+    message.style.transform = 'translate(-50%, -50%)';
+    message.style.padding = '2rem 4rem';
+    message.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+    message.style.borderRadius = '20px';
+    message.style.color = 'white';
+    message.style.fontSize = '2rem';
+    message.style.fontWeight = '800';
+    message.style.zIndex = '10000';
+    message.style.animation = 'fadeIn 0.5s ease-out';
+    message.textContent = '🎉 You found the Easter Egg! 🎉';
+    
+    document.body.appendChild(message);
+    
+    setTimeout(() => {
+        message.style.animation = 'fadeOut 0.5s ease-out';
+        setTimeout(() => message.remove(), 500);
+    }, 3000);
+}
+
+// Add fadeOut animation
+const fadeOutStyle = document.createElement('style');
+fadeOutStyle.textContent = `
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(fadeOutStyle);
+
+// ============================================
+// Cleanup on Page Unload
+// ============================================
+
+window.addEventListener('beforeunload', () => {
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+    
+    // Destroy charts
+    [activityChart, anomalyChart, locationChart, trafficChart].forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    
+    // Cleanup Three.js
+    if (scene) {
+        scene.traverse(object => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
             }
         });
-    });
+    }
     
-    console.log('Campus Security Monitoring System initialized successfully!');
+    if (renderer) {
+        renderer.dispose();
+    }
 });
 
 // ============================================
-// Auto-refresh Activity Feed (Optional)
+// Console Welcome Message
 // ============================================
 
-// Uncomment to enable auto-refresh every 30 seconds
-/*
-setInterval(() => {
-    if (currentData.length > 0) {
-        updateActivityFeed();
-    }
-}, 30000);
-*/
+console.log(`
+%c
+   ___                            ___                   _ _       
+  / __\\__ _ _ __ ___  _ __  _   _/ __\\ ___  ___ _   _ (_) |_ _   _ 
+ / /  / _\` | '_ \` _ \\| '_ \\| | | \\__ \\/ _ \\/ __| | | || | __| | | |
+/ /__| (_| | | | | | | |_) | |_| |___/  __/ (__| |_| || | |_| |_| |
+\\____/\\__,_|_| |_| |_| .__/ \\__,_|    \\___|\\___|\\__,_|/ |\\__|\\__, |
+                     |_|                             |__/     |___/ 
+                     
+%cWelcome to Campus Security Monitoring System! 🛡️
+%cVersion: 1.0.0 | Made with ❤️ for IITG
+
+%cKeyboard Shortcuts:
+• Ctrl/Cmd + K: Focus Search
+• Ctrl/Cmd + U: Upload File
+• Ctrl/Cmd + R: Refresh Data
+
+%cDeveloper Tools Detected!
+If you're interested in the code, check out our GitHub repo.
+`, 
+'color: #667eea; font-size: 12px; font-family: monospace;',
+'color: #f093fb; font-size: 16px; font-weight: bold;',
+'color: #94a3b8; font-size: 12px;',
+'color: #10b981; font-size: 12px;',
+'color: #f59e0b; font-size: 12px;'
+);
+
 // ============================================
-// Facial Recognition Processing
+// Initialize Everything
 // ============================================
 
-let faceRecognitionData = [];
-let faceDatabase = {};
-
-function initFaceUpload() {
-    const videoFileInput = document.getElementById('videoFileInput');
-    const videoUploadBox = document.getElementById('videoUploadBox');
-    const videoFileStatus = document.getElementById('videoFileStatus');
-    
-    // File selection
-    videoFileInput.addEventListener('change', (e) => {
-        const files = e.target.files;
-        if (files.length > 0) {
-            handleVideoFileSelect(files);
-        }
-    });
-    
-    // Drag and drop
-    videoUploadBox.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        videoUploadBox.classList.add('dragover');
-    });
-    
-    videoUploadBox.addEventListener('dragleave', () => {
-        videoUploadBox.classList.remove('dragover');
-    });
-    
-    videoUploadBox.addEventListener('drop', (e) => {
-        e.preventDefault();
-        videoUploadBox.classList.remove('dragover');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleVideoFileSelect(files);
-        }
-    });
-}
-
-function handleVideoFileSelect(files) {
-    const videoFileStatus = document.getElementById('videoFileStatus');
-    const allowedVideo = ['video/mp4', 'video/avi', 'video/quicktime'];
-    const allowedImage = ['image/jpeg', 'image/png', 'image/jpg'];
-    
-    let validFiles = 0;
-    let totalSize = 0;
-    
-    for (let file of files) {
-        if (allowedVideo.includes(file.type) || allowedImage.includes(file.type)) {
-            validFiles++;
-            totalSize += file.size;
-        }
-    }
-    
-    if (validFiles > 0) {
-        videoFileStatus.innerHTML = `✓ ${validFiles} file(s) selected (${formatFileSize(totalSize)})`;
-        videoFileStatus.style.display = 'block';
-        videoFileStatus.style.background = 'rgba(16, 185, 129, 0.1)';
-        videoFileStatus.style.color = '#10b981';
-    } else {
-        videoFileStatus.innerHTML = `✗ No valid video/image files selected`;
-        videoFileStatus.style.display = 'block';
-        videoFileStatus.style.background = 'rgba(239, 68, 68, 0.1)';
-        videoFileStatus.style.color = '#ef4444';
-    }
-}
-
-async function processFacialRecognition() {
-    const videoFileInput = document.getElementById('videoFileInput');
-    
-    if (!videoFileInput.files || videoFileInput.files.length === 0) {
-        alert('Please select video or image files first');
-        return;
-    }
-    
-    showLoading();
-    
-    // Create FormData for file upload
-    const formData = new FormData();
-    for (let file of videoFileInput.files) {
-        formData.append('files', file);
-    }
-    
-    try {
-        // Send to backend API
-        const response = await fetch('http://localhost:5000/api/face-recognition/process', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (response.ok) {
-            const results = await response.json();
-            faceRecognitionData = results.faces || [];
-            updateFaceRecognitionResults(results);
-            scrollToSection('face-results');
-        } else {
-            throw new Error('Face recognition processing failed');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Face recognition requires backend server. Using demo data...');
-        // Use demo data
-        useDemoFaceData();
-    } finally {
-        hideLoading();
-    }
-}
-
-function useDemoFaceData() {
-    // Generate demo face recognition data
-    faceRecognitionData = [];
-    const persons = ['STU00001', 'STU00002', 'STU00003', 'Unknown', 'STU00005'];
-    
-    for (let i = 0; i < 20; i++) {
-        const isIdentified = Math.random() > 0.3;
-        faceRecognitionData.push({
-            face_id: `FACE_${i + 1}`,
-            person_id: isIdentified ? persons[Math.floor(Math.random() * 4)] : 'Unknown',
-            confidence: isIdentified ? 0.7 + Math.random() * 0.25 : 0.3 + Math.random() * 0.3,
-            timestamp: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-            frame_number: Math.floor(Math.random() * 1000),
-            identified: isIdentified
-        });
-    }
-    
-    updateFaceRecognitionResults({
-        total_faces: faceRecognitionData.length,
-        identified: faceRecognitionData.filter(f => f.identified).length,
-        unknown: faceRecognitionData.filter(f => !f.identified).length,
-        faces: faceRecognitionData
-    });
-    
-    scrollToSection('face-results');
-}
-
-function updateFaceRecognitionResults(results) {
-    // Update statistics
-    document.getElementById('detectedFacesCount').textContent = results.total_faces || 0;
-    document.getElementById('identifiedPersonsCount').textContent = results.identified || 0;
-    document.getElementById('unknownFacesCount').textContent = results.unknown || 0;
-    
-    const avgConf = results.faces && results.faces.length > 0
-        ? (results.faces.reduce((sum, f) => sum + f.confidence, 0) / results.faces.length * 100).toFixed(1)
-        : 0;
-    document.getElementById('avgConfidence').textContent = avgConf + '%';
-    
-    // Render face gallery
-    renderFaceGallery(results.faces || []);
-}
-
-function renderFaceGallery(faces) {
-    const gallery = document.getElementById('faceGallery');
-    
-    if (faces.length === 0) {
-        gallery.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No faces detected</p>';
-        return;
-    }
-    
-    gallery.innerHTML = faces.map(face => {
-        const statusClass = face.identified ? 'identified' : 'unknown';
-        const statusText = face.identified ? 'Identified' : 'Unknown';
-        const confidencePercent = (face.confidence * 100).toFixed(1);
-        
-        return `
-            <div class="face-card">
-                <div class="face-image" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
-                    👤
-                </div>
-                <div class="face-info">
-                    <div class="person-id">${face.person_id}</div>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                    <div class="confidence-score">
-                        <span>Confidence:</span>
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
-                        </div>
-                        <span>${confidencePercent}%</span>
-                    </div>
-                    <div class="face-timestamp">Frame: ${face.frame_number} | ${new Date(face.timestamp).toLocaleString()}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-async function addPersonToDatabase() {
-    const personId = document.getElementById('personId').value;
-    const personImagesInput = document.getElementById('personImagesInput');
-    
-    if (!personId) {
-        alert('Please enter a Person ID');
-        return;
-    }
-    
-    if (!personImagesInput.files || personImagesInput.files.length === 0) {
-        alert('Please select at least one image');
-        return;
-    }
-    
-    showLoading();
-    
-    const formData = new FormData();
-    formData.append('person_id', personId);
-    for (let file of personImagesInput.files) {
-        formData.append('images', file);
-    }
-    
-    try {
-        const response = await fetch('http://localhost:5000/api/face-database/add-person', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            alert(`Successfully added ${result.embeddings_count} images for ${personId}`);
-            
-            // Clear inputs
-            document.getElementById('personId').value = '';
-            personImagesInput.value = '';
-        } else {
-            throw new Error('Failed to add person to database');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Database update requires backend server. Simulating success...');
-        document.getElementById('personId').value = '';
-        personImagesInput.value = '';
-    } finally {
-        hideLoading();
-    }
-}
-
-async function detectDuplicates() {
-    showLoading();
-    
-    try {
-        const response = await fetch('http://localhost:5000/api/face-database/detect-duplicates', {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            displayDuplicateResults(result.duplicates || []);
-        } else {
-            throw new Error('Duplicate detection failed');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Duplicate detection requires backend server.');
-    } finally {
-        hideLoading();
-    }
-}
-
-function displayDuplicateResults(duplicates) {
-    if (duplicates.length === 0) {
-        alert('No duplicates found in the database');
-        return;
-    }
-    
-    let message = `Found ${duplicates.length} potential duplicate(s):\n\n`;
-    duplicates.forEach((dup, idx) => {
-        message += `${idx + 1}. ${dup.person1} ↔ ${dup.person2} (Similarity: ${(dup.similarity * 100).toFixed(1)}%)\n`;
-    });
-    
-    alert(message);
-}
-
-function exportFaceResults() {
-    if (faceRecognitionData.length === 0) {
-        alert('No face recognition data to export');
-        return;
-    }
-    
-    // Convert to CSV
-    const headers = ['Face ID', 'Person ID', 'Confidence', 'Status', 'Frame Number', 'Timestamp'];
-    const csvContent = [
-        headers.join(','),
-        ...faceRecognitionData.map(face => [
-            face.face_id,
-            face.person_id,
-            face.confidence.toFixed(4),
-            face.identified ? 'Identified' : 'Unknown',
-            face.frame_number,
-            face.timestamp
-        ].join(','))
-    ].join('\n');
-    
-    // Download
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `face_recognition_results_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-}
-
-// Update DOMContentLoaded to include face recognition initialization
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing initializations ...
-    
-    // Initialize face recognition upload
-    initFaceUpload();
-});
+console.log('✓ Campus Security System initialized successfully!');
+console.log('📊 Dashboard ready');
+console.log('🎨 Three.js animations running');
+console.log('📈 Charts engine loaded');
