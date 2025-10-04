@@ -1,10 +1,3 @@
--- Campus Security Monitoring System Database Schema
--- Database: campus_security_db
-
--- ============================================
--- TABLE: users
--- Stores information about students and staff
--- ============================================
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     student_id VARCHAR(20) UNIQUE NOT NULL,
@@ -21,10 +14,6 @@ CREATE TABLE users (
     INDEX idx_status (status)
 );
 
--- ============================================
--- TABLE: access_devices
--- Stores access cards, MAC addresses, etc.
--- ============================================
 CREATE TABLE access_devices (
     device_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
@@ -41,10 +30,6 @@ CREATE TABLE access_devices (
     INDEX idx_user_device (user_id, device_type)
 );
 
--- ============================================
--- TABLE: buildings
--- Campus buildings and locations
--- ============================================
 CREATE TABLE buildings (
     building_id INT PRIMARY KEY AUTO_INCREMENT,
     building_name VARCHAR(100) NOT NULL,
@@ -57,10 +42,6 @@ CREATE TABLE buildings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================
--- TABLE: activities
--- Main table for tracking all campus activities
--- ============================================
 CREATE TABLE activities (
     activity_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     record_id VARCHAR(20) UNIQUE,
@@ -82,10 +63,6 @@ CREATE TABLE activities (
     INDEX idx_activity_type (activity_type)
 );
 
--- ============================================
--- TABLE: entity_clusters
--- Stores entity resolution results
--- ============================================
 CREATE TABLE entity_clusters (
     cluster_id INT PRIMARY KEY AUTO_INCREMENT,
     cluster_name VARCHAR(50),
@@ -96,10 +73,6 @@ CREATE TABLE entity_clusters (
     FOREIGN KEY (primary_user_id) REFERENCES users(user_id)
 );
 
--- ============================================
--- TABLE: entity_mappings
--- Links multiple identifiers to single entity
--- ============================================
 CREATE TABLE entity_mappings (
     mapping_id INT PRIMARY KEY AUTO_INCREMENT,
     cluster_id INT,
@@ -114,10 +87,6 @@ CREATE TABLE entity_mappings (
     INDEX idx_user_mapping (user_id)
 );
 
--- ============================================
--- TABLE: anomalies
--- Detected anomalous activities
--- ============================================
 CREATE TABLE anomalies (
     anomaly_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     activity_id BIGINT,
@@ -137,10 +106,6 @@ CREATE TABLE anomalies (
     INDEX idx_user_anomaly (user_id, detected_at)
 );
 
--- ============================================
--- TABLE: security_alerts
--- Active security alerts requiring attention
--- ============================================
 CREATE TABLE security_alerts (
     alert_id INT PRIMARY KEY AUTO_INCREMENT,
     anomaly_id BIGINT,
@@ -159,10 +124,6 @@ CREATE TABLE security_alerts (
     INDEX idx_created (created_at)
 );
 
--- ============================================
--- TABLE: predictions
--- Stores ML model predictions for missing data
--- ============================================
 CREATE TABLE predictions (
     prediction_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     activity_id BIGINT,
@@ -178,10 +139,6 @@ CREATE TABLE predictions (
     INDEX idx_field (field_name)
 );
 
--- ============================================
--- TABLE: audit_logs
--- System audit trail
--- ============================================
 CREATE TABLE audit_logs (
     log_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
@@ -197,11 +154,6 @@ CREATE TABLE audit_logs (
     INDEX idx_user_action (user_id, action)
 );
 
--- ============================================
--- VIEWS: Useful pre-computed views
--- ============================================
-
--- View: Recent Activities with User Info
 CREATE VIEW v_recent_activities AS
 SELECT 
     a.activity_id,
@@ -220,7 +172,6 @@ JOIN buildings b ON a.building_id = b.building_id
 WHERE a.timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
 ORDER BY a.timestamp DESC;
 
--- View: Active Alerts Dashboard
 CREATE VIEW v_active_alerts AS
 SELECT 
     sa.alert_id,
@@ -240,7 +191,6 @@ JOIN users u ON an.user_id = u.user_id
 WHERE sa.status IN ('pending', 'investigating')
 ORDER BY sa.priority DESC, sa.created_at DESC;
 
--- View: User Activity Summary
 CREATE VIEW v_user_activity_summary AS
 SELECT 
     u.user_id,
@@ -258,13 +208,8 @@ LEFT JOIN anomalies an ON a.activity_id = an.activity_id
 WHERE a.timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 GROUP BY u.user_id, u.student_id, u.first_name, u.last_name;
 
--- ============================================
--- STORED PROCEDURES
--- ============================================
-
 DELIMITER //
 
--- Procedure: Get Entity Activity History
 CREATE PROCEDURE sp_get_entity_history(IN p_student_id VARCHAR(20))
 BEGIN
     SELECT 
@@ -286,7 +231,6 @@ BEGIN
     LIMIT 100;
 END //
 
--- Procedure: Get Anomaly Statistics
 CREATE PROCEDURE sp_anomaly_statistics(IN p_days INT)
 BEGIN
     SELECT 
@@ -302,26 +246,14 @@ END //
 
 DELIMITER ;
 
--- ============================================
--- INDEXES for Performance Optimization
--- ============================================
-
--- Composite indexes for common queries
 CREATE INDEX idx_activity_user_time ON activities(user_id, timestamp DESC);
 CREATE INDEX idx_activity_building_time ON activities(building_id, timestamp DESC);
 CREATE INDEX idx_anomaly_severity_time ON anomalies(severity, detected_at DESC);
 CREATE INDEX idx_alert_status_priority ON security_alerts(status, priority, created_at DESC);
 
--- ============================================
--- SAMPLE DATA INSERTION (Optional)
--- ============================================
-
--- Insert sample buildings
 INSERT INTO buildings (building_name, building_code, building_type, security_level) VALUES
 ('Main Academic Building', 'MAB', 'academic', 'medium'),
 ('Central Library', 'LIB', 'academic', 'low'),
 ('Computer Lab A', 'LABA', 'academic', 'high'),
 ('Student Dormitory A', 'DORMA', 'residential', 'medium'),
 ('Administrative Building', 'ADMIN', 'administrative', 'high');
-
--- Note: User data and activities would be populated from your Excel imports
